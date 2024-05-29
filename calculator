@@ -1,0 +1,47 @@
+.l file->
+%{
+#include<stdlib.h>
+#include "y.tab.h"
+int yylval ;
+%}
+%%
+[0-9]+ {yylval=atoi(yytext); return NUM;}
+[+*\n] return *yytext;
+. ;
+%%
+int yywrap()
+{
+ return 1;
+}
+.y file->
+%{
+int yylex(void);
+#include<stdio.h>
+void yyerror(char *);
+%}
+%name parse
+%token NUM
+%left '+'
+%left '*' //top to bottom precendence increases
+%%
+S : S E '\n' {$$=$2;printf("\n");}
+ | {} //epsilon
+E : E '+' E {printf("+");} //':' means equals to
+ | E '*' E {printf("*");}
+ |NUM {printf("%d",$$);}
+ ;
+%%
+int main()
+{
+ yyparse();
+ return 0 ;
+}
+void yyerror(char *msg){
+printf("Error in arithmetic");
+}
+
+TERMINAL
+lex prog.l
+bison -dy prog1.y
+gcc lex.yy.c y.tab.c
+./a.out
